@@ -1,25 +1,145 @@
-# 🎈 Blank app template
+import streamlit as st
+import json
+from datetime import datetime
 
-A simple Streamlit app template for you to modify!
+# تنظیمات صفحه
+st.set_page_config(
+    page_title="دستیار هوشمند تاجر موفق",
+    page_icon="💼",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+# استایل‌دهی فارسی (RTL)
+st.markdown("""
+    <style>
+    @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+    html, body, [class*="css"]  {
+        font-family: 'Vazirmatn', sans-serif;
+        direction: rtl;
+        text-align: right;
+    }
+    .stCheckbox { font-size: 18px; }
+    </style>
+    """, unsafe_allow_html=True)
 
-### How to run it on your own machine
+# عنوان نرم‌افزار
+st.title("🚀 دستیار هوشمند و نقشه راه تاجر موفق")
+st.subtitle("مدیریت گام‌به‌گام زنجیره تجارت، لجستیک و صادرات")
 
-Prerequisite: install `uv` if you don't already have it.
+# تعریف مراحل ۶گانه تجارت موفق
+STAGES = {
+    "مرحله ۱: زیرساخت حقوقی و استراتژی": [
+        "ثبت شرکت و علامت تجاری (در منطقه آزاد/سرزمین اصلی)",
+        "افتتاح حساب‌های بانکی و صرافی‌های معتبر",
+        "تنظیم توافق‌نامه سهام‌داران (SHA) و عدم افشا (NDA)",
+        "تعیین محصول هدف و حوزه فعالیت (Niche Market)",
+        "تحقیقات بازار مقصد (قوانین گمرکی، تعرفه‌ها، رقبا)"
+    ],
+    "مرحله ۲: بازاریابی و جذب مشتری/شریک": [
+        "آماده‌سازی کاتالوگ و پروفایل شرکتی (حداقل ۲ زبانه)",
+        "طراحی پروپوزال‌های سرمایه‌گذاری و مشارکت (مثل BOT)",
+        "شرکت در نمایشگاه‌ها و جلسات اتاق بازرگانی",
+        "ارسال دعوت‌نامه‌ها و مذاکره با کارخانه‌داران و مشتریان",
+        "امضای تفاهم‌نامه اولیه (MoU) یا پیش‌نویس قرارداد"
+    ],
+    "مرحله ۳: امور گمرکی و استانداردها": [
+        "اخذ استانداردها و گواهی‌های کیفی محصول (مثل CE، ISO)",
+        "استعلام کد HS و تعرفه‌های گمرکی کشور مبدأ و مقصد",
+        "تنظیم پروفرما (پیش‌فاکتور) طبق اصول Incoterms 2020",
+        "اخذ مجوزهای صادراتی/وارداتی و کارت بازرگانی",
+        "هماهنگی تشریفات ترخیص در گمرکات مرزی (مانند سرخس)"
+    ],
+    "مرحله ۴: لجستیک، زنجیره تامین و انبارداری": [
+        "انتخاب روش حمل (ریلی، جاده‌ای، دریایی یا ترکیبی)",
+        "استعلام نرخ و استعلام ناوگان از شرکت‌های فورواردر",
+        "صدور کارنه تیر (TIR Carnet) و بیمه‌نامه‌های بین‌المللی بار",
+        "تجهیز انبار/سوله در مقصد (مانند منطقه آزاد دنغره)",
+        "ارسال محموله آزمایشی (Pilot) و پایش زمان سیر"
+    ],
+    "مرحله ۵: مدیریت مالی و تسویه‌حساب": [
+        "تعیین روش پرداخت (L/C، صرافی، تهاتر یا اعتبار)",
+        "دریافت پیش‌پرداخت قبل از ارسال کالا",
+        "تنظیم اسناد تجاری (سیاهه تجاری/Invoice، پکینگ لیست، گواهی مبدأ)",
+        "تسویه حساب نهایی پس از تحویل کالا در مقصد",
+        "محاسبه سود خالص و مدیریت هزینه‌های پنهان"
+    ],
+    "مرحله ۶: توسعه، ارزیابی و وفادارسازی": [
+        "نظرسنجی کیفیت از خریدار و ارزیابی عملکرد تامین‌کنندگان",
+        "بررسی ریسک‌ها و چالش‌های مسیر برای محموله‌های بعدی",
+        "توسعه ظرفیت انبارداری و جذب شرکای جدید",
+        "بازسرمایه‌گذاری سود برای خرید تجهیزات/املاک تجاری"
+    ]
+}
 
-```
-$ curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+# نوار کناری برای انتخاب مرحله
+st.sidebar.header("📌 مراحل تجارت")
+selected_stage = st.sidebar.radio("انتخاب مرحله فعال:", list(STAGES.keys()))
 
-1. Sync the dependencies
+# نمایش بخش اصلی نرم‌افزار
+st.subheader(f"🔍 {selected_stage}")
 
-   ```
-   $ uv sync
-   ```
+# چک‌لیست اقدامات
+col1, col2 = st.columns([2, 1])
 
-2. Run the app
+with col1:
+    st.write("### 📋 چک‌لیست اقدامات اجرایی:")
+    completed_count = 0
+    total_tasks = len(STAGES[selected_stage])
+    
+    for task in STAGES[selected_stage]:
+        # کلید اختصاصی برای ذخیره‌سازی وضعیت
+        status = st.checkbox(task, key=f"{selected_stage}_{task}")
+        if status:
+            completed_count += 1
 
-   ```
-   $ uv run streamlit run streamlit_app.py
-   ```
+    # درصد پیشرفت مرحله
+    progress = completed_count / total_tasks
+    st.write("---")
+    st.write(f"**میزان پیشرفت در این مرحله:** {int(progress * 100)}%")
+    st.progress(progress)
+
+with col2:
+    st.write("### 📝 یادداشت‌ها و پیگیری‌ها:")
+    notes = st.text_area(
+        "یادداشت‌های مهم، تماس‌ها و موارد نیاز به پیگیری این گام:",
+        height=200,
+        key=f"notes_{selected_stage}"
+    )
+    if st.button("ثبت و ذخیره یادداشت"):
+        st.success("یادداشت شما با موفقیت ثبت شد.")
+
+# بخش ابزارهای کاربردی تاجر
+st.write("---")
+st.header("🛠 ابزارهای کمکی سریع تاجر")
+
+col_a, col_b, col_c = st.columns(3)
+
+with col_a:
+    st.write("#### 📐 محاسبه‌گر سود تقریبی")
+    buy_price = st.number_input("قیمت خرید کالا (دلار):", value=1000)
+    transit_cost = st.number_input("هزینه لجستیک و گمرک (دلار):", value=200)
+    sell_price = st.number_input("قیمت فروش در مقصد (دلار):", value=1500)
+    
+    profit = sell_price - (buy_price + transit_cost)
+    st.info(f"سود ناخالص برآوردی: **{profit} دلار**")
+
+with col_b:
+    st.write("#### 🌐 قوانین اینکوترمز ۲۰۲۰")
+    incoterm = st.selectbox("انتخاب اینکوترمز:", ["FOB", "CIF", "CFR", "DDP", "FCA", "EXW"])
+    incoterm_info = {
+        "EXW": "تحویل در درب کارخانه فروشنده (تمام ریسک و هزینه با خریدار).",
+        "FCA": "تحویل به حمل‌کننده در مبدأ تعیین‌شده.",
+        "FOB": "تحویل روی عرشه کشتی در بندر مبدأ.",
+        "CFR": "ارزش کالا + کرایه حمل تا بندر مقصد (بدون بیمه).",
+        "CIF": "ارزش کالا + بیمه + کرایه حمل تا بندر مقصد.",
+        "DDP": "تحویل در مقصد با پرداخت تمام حقوق و عوارض گمرکی (ریسک کامل فروشنده)."
+    }
+    st.warning(incoterm_info[incoterm])
+
+with col_c:
+    st.write("#### ⏰ یادآور گام بعدی")
+    reminder_date = st.date_input("تاریخ جلسات یا پیگیری گمرکی:")
+    reminder_text = st.text_input("موضوع جلسه/پیگیری:")
+    if st.button("افزودن به تقویم کاری"):
+        st.success(f"یادآور '{reminder_text}' برای تاریخ {reminder_date} تنظیم شد.")
